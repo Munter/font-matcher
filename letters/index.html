@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link href="https://fonts.googleapis.com/css?family=Playfair+Display|Source+Sans+Pro|Srisakdi" rel="stylesheet">
+</head>
+<body>
+
+  <form>
+    <label>
+      Compare
+      <select></select>
+    </label>
+    <label>
+      against
+      <select></select>
+    </label>
+
+  </form>
+
+  <canvas id="canvas" width="600" height="600" style="outline: 1px dotted gray"></canvas>
+  <h1 id="heading"></h1>
+
+  <script>
+const heading = document.getElementById('heading');
+const canvas = document.getElementById('canvas');
+canvas.style.backgroundImage = 'linear-gradient(45deg, #808080 25%, transparent 25%), linear-gradient(-45deg, #808080 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #808080 75%), linear-gradient(-45deg, transparent 75%, #808080 75%)';
+canvas.style.backgroundSize = '20px 20px';
+canvas.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
+
+const ctx = canvas.getContext('2d');
+ctx.globalCompositeOperation = 'xor';
+
+let availableFonts = [...new Set([...document.fonts].map(f => f.family))];
+
+const [selectA, selectB] = document.forms[0];
+
+addOptions(selectA, availableFonts);
+addOptions(selectB, availableFonts);
+
+function addOptions(select, options) {
+  select.innerHTML = options.map(option => `<option value="${option}">${option}</option>`).join('');
+}
+
+selectB.value = availableFonts[1];
+
+function onSelectChange(e) {
+  compareFonts(selectA.value, selectB.value);
+}
+
+selectA.addEventListener('change', onSelectChange);
+selectB.addEventListener('change', onSelectChange);
+
+compareFonts(selectA.value, selectB.value);
+
+async function compareFonts(a, b) {
+    await Promise.all([...document.fonts].map(f => f.load()));
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.font = `500px ${a}`;
+    ctx.fillText('A', 100, 500);
+
+    ctx.font = `500px ${b}`;
+    ctx.fillText('A', 100, 500);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+    let difference = 0;
+
+    for (let i = 3; i < imageData.length; i += 4) {
+      difference += imageData[i];
+    }
+
+    heading.innerText = `Difference: ${difference}`;
+}
+
+  </script>
+</body>
+</html>
